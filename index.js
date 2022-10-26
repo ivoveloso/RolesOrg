@@ -54,30 +54,32 @@ function init() {
     },
   ])
   .then(val => {
-    console.log("val", val)
     switch (val.option) {
       case 'View All Employees':
         getallemployees()
         break;
       case 'Add Employee':
+        addEmployee()
         break;
       case 'View All Departments':
-          getalldepartments()
-          break;
+        getalldepartments()
+        break;
       case 'View All Roles':
-          getallroles()
-          break;
+        getallroles()
+        break;
+      case 'Add Role':
+        addRole()
+        break;
       case 'Add Department':
         addDepartment()
         break;
       case 'Update Employee Role':
         updateEmpRole()
         break;
-    
-      default:
-        break;
+      case 'Quit':
+        return process.exit()
     }
-    return console.log(val.option);
+    return
     })}
 
     function getalldepartments() {
@@ -108,7 +110,7 @@ function init() {
     }
 
     function getallroles() {
-      const sql = 'SELECT * FROM role JOIN department ON department.id = role.department_id'
+      const sql = 'SELECT title, salary, name FROM role JOIN department ON department.id = role.department_id'
       db.query(sql, (err, result) => {
         if (err) {
           console.error(err)
@@ -137,6 +139,101 @@ function init() {
           init();
         });
       })
+    }
+
+    function addRole() {
+      const sql = 'SELECT name, id FROM department'
+        db.query(sql, (err,result) => {
+          if (err) {
+            console.error(err)
+            return;
+          }
+          const departments = result.map(dep => ({name: dep.name, value: dep.id}))
+          inquirer
+          .prompt ([
+            {
+              message: roleQs[0],
+              name: 'title'
+            },
+            {
+              message: roleQs[1],
+              name: 'salary'
+            },
+            {
+              type: 'list',
+              message: roleQs[2],
+              choices: departments,
+              name: 'dep_id'
+            },
+          ])
+          .then(val => {
+            const sql3 = 'INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)'
+            db.query(sql3, [val.title, val.salary, val.dep_id], (err,result) => {
+              if (err) {
+                console.error(err)
+                return;
+              }
+              console.log('Role Added!')
+              init();
+            });
+          })
+        });
+      };
+
+
+    function addEmployee() {
+      const sql = 'SELECT first_name, last_name, id FROM employee'
+      const sql2 = 'SELECT title, id FROM role'
+      db.query(sql, (err,result) => {
+        if (err) {
+          console.error(err)
+          return;
+        }
+        db.query(sql2, (err,result2) => {
+          if (err) {
+            console.error(err)
+            return;
+          }
+          const employees = result.map(emp => ({name: `${emp.first_name} ${emp.last_name}`, value: emp.id}))
+          const roles = result2.map(rol => ({name: rol.title, value: rol.id}))
+          inquirer
+          .prompt ([
+            {
+              message: employeeQs[0],
+              name: 'first_name'
+            },
+            {
+              message: employeeQs[1],
+              name: 'last_name'
+            },
+            {
+              type: 'list',
+              message: employeeQs[2],
+              choices: roles,
+              name: 'role'
+            },
+            {
+              type: 'list',
+              message: employeeQs[3],
+              choices: employees,
+              name: 'manager'
+            },
+      
+          ])
+          .then(val => {
+            const sql3 = 'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)'
+            db.query(sql3, [val.first_name, val.last_name, val.role, val.manager], (err,result) => {
+              if (err) {
+                console.error(err)
+                return;
+              }
+              console.log('Employee Added!')
+              init();
+            });
+          })
+        });
+      });
+      
     }
 
     function updateEmpRole() {
@@ -176,7 +273,6 @@ function init() {
                 console.error(err)
                 return;
               }
-              console.log(val.employee_id, val.role_id)
               console.log('Role updated!')
               init();
             });
