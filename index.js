@@ -98,7 +98,7 @@ function init() {
     }
 
     function getallemployees() {
-      const sql = 'SELECT * FROM employee JOIN role ON role.id = employee.role_id JOIN employee AS manager ON manager.id = employee.manager_id'
+      const sql = 'SELECT * FROM employee JOIN role ON role.id = employee.role_id'
 
       db.query(sql, (err, result) => {
         if (err) {
