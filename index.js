@@ -77,6 +77,7 @@ function init() {
         updateEmpRole()
         break;
       case 'Quit':
+        console.table('Bye');
         return process.exit()
     }
     return
